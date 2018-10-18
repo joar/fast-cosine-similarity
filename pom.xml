@@ -7,7 +7,9 @@
     <name>elasticsearch-fast-cosine-similarity</name>
     <groupId>com.github.staysense</groupId>
     <artifactId>staysense-cosine-sim</artifactId>
+    <!-- BEGIN PLUGIN_VERSION -->
     <version>6.4.1</version>
+    <!-- END PLUGIN_VERSION -->
     <description>ElasticSearch Plugin for Cosine Similarity</description>
 
     <licenses>
