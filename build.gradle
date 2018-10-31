@@ -46,6 +46,7 @@ dependencies {
     compile 'org.jscience:jscience:4.3.1'
     compile "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
     testCompile "org.elasticsearch.test:framework:${versions.elasticsearch}"
+    testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
 }
 
 // no unit tests
@@ -53,4 +54,5 @@ test.enabled = false
 
 // skip license header checks
 licenseHeaders.enabled = false
+dependencyLicenses.enabled = false
 
