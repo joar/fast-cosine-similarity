@@ -19,27 +19,26 @@
 
 package com.staysense.fastcosinesimilarity;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.ArrayList;
-import java.nio.ByteBuffer;
-import java.nio.DoubleBuffer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.message.ParameterizedMessage;
-import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.BinaryDocValues;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.store.ByteArrayDataInput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.plugins.ScriptPlugin;
+import org.elasticsearch.script.ScoreScript;
 import org.elasticsearch.script.ScriptContext;
 import org.elasticsearch.script.ScriptEngine;
-import org.elasticsearch.script.ScoreScript;
 import org.elasticsearch.search.lookup.SearchLookup;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -114,7 +113,7 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                 field = params.get("field").toString();
 
                 //Get the query vector embedding
-                vector = params.get("vector");
+                vector = params.get("encoded_vector");
 
                 logger.debug(
                         "FastCosineLeafFactory: field: {}, cosine: {}",
@@ -122,22 +121,13 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         cosine
                 );
 
-                //Determine if raw comma-delimited vector or embedding was passed
-                if (vector != null) {
-                    final ArrayList<Double> tmp = (ArrayList<Double>) vector;
-                    inputVector = new double[tmp.size()];
-                    for (int i = 0; i < inputVector.length; i++) {
-                        inputVector[i] = tmp.get(i);
-                    }
-                } else {
-                    final Object encodedVector = params.get("encoded_vector");
-                    if (encodedVector == null) {
-                        throw new IllegalArgumentException(
-                                "Must have [vector] or [encoded_vector] as a parameter"
-                        );
-                    }
-                    inputVector = Util.convertBase64ToArray((String) encodedVector);
+                final Object encodedVector = params.get("encoded_vector");
+                if (encodedVector == null) {
+                    throw new IllegalArgumentException(
+                            "Must have [vector] or [encoded_vector] as a parameter"
+                    );
                 }
+                inputVector = Util.convertBase64ToArray((String) encodedVector);
 
                 //If cosine calculate the query vec norm
                 if (cosine) {
@@ -239,7 +229,8 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         if (docDoubleBuffer.capacity() != inputVector.length) {
                             throw new IllegalArgumentException(
                                     String.format(
-                                            "Input vector length [%d] differs from document vector length [%d] for docID %s",
+                                            Locale.ENGLISH,
+                                            "Input vector length [%d] differs from document vector length [%d] for docID %d",
                                             inputVector.length,
                                             docDoubleBuffer.capacity(),
                                             currentDocID
@@ -261,25 +252,15 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         for (int i = 0; i < inputVector.length; i++) {
                             score += docVector[i] * inputVector[i];
 
-                            if (cosine) {
-                                docVectorNorm += Math.pow(docVector[i], 2.0);
-                            }
-                            logger.trace("docVectorNorm: {}, docVector[i]: {}", docVectorNorm, docVector[i]);
+                            docVectorNorm += Math.pow(docVector[i], 2.0);
                         }
 
-                        // If cosine, calculate cosine score
-                        if (cosine) {
-                            if (docVectorNorm == 0) {
-                                logger.debug("docVectorNorm == 0");
-                                return 0d;
-                            }
-                            if (queryVectorNorm == 0) {
-                                logger.debug("queryVectorNorm == 0");
-                                return 0d;
-                            }
-
-                            score = score / (Math.sqrt(docVectorNorm) * Math.sqrt(queryVectorNorm));
+                        if (docVectorNorm == 0 || queryVectorNorm == 0) {
+                            logger.debug("docVectorNorm == 0");
+                            return 0d;
                         }
+
+                        score = score / (Math.sqrt(docVectorNorm * queryVectorNorm));
 
                         logger.trace("score: {}", score);
 

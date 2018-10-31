@@ -2,6 +2,7 @@ package com.staysense.fastcosinesimilarity;
 
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -10,7 +11,7 @@ import java.util.Base64;
 public class Util {
 
     public static final double[] convertBase64ToArray(String base64Str) {
-        final byte[] decode = Base64.getDecoder().decode(base64Str.getBytes());
+        final byte[] decode = Base64.getDecoder().decode(base64Str.getBytes(StandardCharsets.UTF_8));
         final DoubleBuffer doubleBuffer = ByteBuffer.wrap(decode).asDoubleBuffer();
 
         final double[] dims = new double[doubleBuffer.capacity()];
@@ -26,6 +27,6 @@ public class Util {
         }
         bb.rewind();
         final ByteBuffer encodedBB = Base64.getEncoder().encode(bb);
-        return new String(encodedBB.array());
+        return new String(encodedBB.array(), StandardCharsets.UTF_8);
     }
 }

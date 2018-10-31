@@ -1,6 +1,0 @@
-name=elasticsearch-fast-cosine-similarity
-description=ElasticSearch Plugin for Cosine Similarity
-version=6.4.0
-classname=com.staysense.fastcosinesimilarity.FastCosineSimilarityPlugin
-java.version=1.8
-elasticsearch.version=6.4.0

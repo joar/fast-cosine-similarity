@@ -1,0 +1,56 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name 'sonatype-snapshots'
+            url "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        jcenter()
+    }
+    dependencies {
+        classpath "org.elasticsearch.gradle:build-tools:6.4.2"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'elasticsearch.esplugin'
+
+group = 'com.github.staysense'
+version = '6.4.2'
+licenseFile = rootProject.file('LICENSE')
+noticeFile = rootProject.file('README.md')
+
+ext {
+    versions.elasticsearch = version
+}
+
+description = """elasticsearch-fast-cosine-similarity"""
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+esplugin {
+    name 'fast-cosine-similarity'
+    description 'ElasticSearch Plugin for Cosine Similarity'
+    classname 'com.staysense.fastcosinesimilarity.FastCosineSimilarityPlugin'
+    licenseFile rootProject.file('LICENSE')
+    noticeFile rootProject.file('README.md')
+}
+
+integTestCluster {
+    numNodes = 2
+}
+
+dependencies {
+    compile 'org.jscience:jscience:4.3.1'
+    compile "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
+    testCompile "org.elasticsearch.test:framework:${versions.elasticsearch}"
+}
+
+// no unit tests
+test.enabled = false
+
+// skip license header checks
+licenseHeaders.enabled = false
+
