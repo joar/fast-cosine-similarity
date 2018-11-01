@@ -1,3 +1,11 @@
+# intellij files
+.idea/
+*.iml
+*.ipr
+*.iws
+build-idea/
+
+ # Gradle files
 .gradle
 /build/
 

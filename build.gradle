@@ -1,15 +1,15 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name 'sonatype-snapshots'
-            url "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-        jcenter()
-    }
-    dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:6.4.2"
-    }
+  repositories {
+    mavenCentral()
+      maven {
+        name 'sonatype-snapshots'
+          url "https://oss.sonatype.org/content/repositories/snapshots/"
+      }
+    jcenter()
+  }
+  dependencies {
+    classpath "org.elasticsearch.gradle:build-tools:6.4.2"
+  }
 }
 
 apply plugin: 'java'
@@ -22,31 +22,32 @@ licenseFile = rootProject.file('LICENSE')
 noticeFile = rootProject.file('README.md')
 
 ext {
-    versions.elasticsearch = version
+  versions.elasticsearch = version
+  isIdea = System.getProperty("idea.active") != null || gradle.startParameter.taskNames.contains('idea') || gradle.startParameter.taskNames.contains('cleanIdea')
 }
 
-description = """elasticsearch-fast-cosine-similarity"""
+description = "Vector cosine similarity scoring for Elasticsearch"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 esplugin {
-    name 'fast-cosine-similarity'
-    description 'ElasticSearch Plugin for Cosine Similarity'
-    classname 'com.staysense.fastcosinesimilarity.FastCosineSimilarityPlugin'
-    licenseFile rootProject.file('LICENSE')
-    noticeFile rootProject.file('README.md')
+  name 'fast-cosine-similarity'
+  description 'ElasticSearch Plugin for Cosine Similarity'
+  classname 'com.staysense.fastcosinesimilarity.FastCosineSimilarityPlugin'
+  licenseFile rootProject.file('LICENSE')
+  noticeFile rootProject.file('README.md')
 }
 
 integTestCluster {
-    numNodes = 2
+  // numNodes = 2
 }
 
 dependencies {
-    compile 'org.jscience:jscience:4.3.1'
-    compile "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
-    testCompile "org.elasticsearch.test:framework:${versions.elasticsearch}"
-    testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
+  compile 'org.jscience:jscience:4.3.1'
+  compile "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
+  testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
+  testCompile "org.elasticsearch.test:framework:${versions.elasticsearch}"
 }
 
 // no unit tests
@@ -56,3 +57,60 @@ test.enabled = false
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 
+// IntelliJ
+// =============================================================================
+
+if (isIdea) {
+  project.buildDir = file('build-idea')
+}
+
+idea {
+  module {
+    inheritOutputDirs = false
+    outputDir = file('build-idea/classes/main')
+    testOutputDir = file('build-idea/classes/test')
+
+    // also ignore other possible build dirs
+    excludeDirs += file('build')
+    excludeDirs += file('build-eclipse')
+
+    iml {
+      // fix so that Gradle idea plugin properly generates support for resource folders
+      // see also https://issues.gradle.org/browse/GRADLE-2975
+      withXml {
+        it.asNode().component.content.sourceFolder.findAll { it.@url == 'file://$MODULE_DIR$/src/main/resources' }.each {
+          it.attributes().remove('isTestSource')
+          it.attributes().put('type', 'java-resource')
+        }
+        it.asNode().component.content.sourceFolder.findAll { it.@url == 'file://$MODULE_DIR$/src/test/resources' }.each {
+          it.attributes().remove('isTestSource')
+          it.attributes().put('type', 'java-test-resource')
+        }
+      }
+    }
+  }
+}
+
+task cleanIdeaBuildDir(type: Delete) {
+  delete 'build-idea'
+}
+cleanIdeaBuildDir.setGroup("ide")
+cleanIdeaBuildDir.setDescription("Deletes the IDEA build directory.")
+
+tasks.cleanIdea.dependsOn(cleanIdeaBuildDir)
+
+idea {
+  project {
+    vcs = 'Git'
+  }
+}
+
+// Make sure gradle idea was run before running anything in intellij (including import).
+File ideaMarker = new File(projectDir, '.local-idea-is-configured')
+tasks.idea.doLast {
+  ideaMarker.setText('', 'UTF-8')
+}
+
+if (System.getProperty('idea.active') != null && ideaMarker.exists() == false) {
+  throw new GradleException('You must run gradle idea from the root of elasticsearch before importing into IntelliJ')
+}
