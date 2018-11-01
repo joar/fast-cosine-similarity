@@ -63,7 +63,7 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
         @Override
         public <T> T compile(String scriptName, String scriptSource, ScriptContext<T> context, Map<String, String> params) {
             logger.debug("Hello");
-            if (context.equals(ScoreScript.CONTEXT) == false) {
+            if (!context.equals(ScoreScript.CONTEXT)) {
                 throw new IllegalArgumentException(getType() + " scripts cannot be used for context [" + context.name + "]");
             }
             // we use the script "source" as the script identifier
@@ -85,15 +85,13 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
 
             // The field to compare against
             final String field;
-            //Whether this search should be cosine or dot product
-            final Boolean cosine;
-            //The query embedded vector
+            // The query embedded vector
             final Object vector;
-            //The final comma delimited vector representation of the query vector
+            // The final comma delimited vector representation of the query vector
             double[] inputVector;
 
             //
-            //The normalized vector score from the query
+            // The normalized vector score from the query
             //
             double queryVectorNorm;
 
@@ -105,20 +103,15 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                     throw new IllegalArgumentException("Missing parameter [field]");
                 }
 
-                //Determine if cosine
-                final Object cosineBool = params.get("cosine");
-                cosine = cosineBool == null || (boolean) cosineBool;
-
-                //Get the field value from the query
+                // Get the field value from the query
                 field = params.get("field").toString();
 
-                //Get the query vector embedding
+                // Get the query vector embedding
                 vector = params.get("encoded_vector");
 
                 logger.debug(
-                        "FastCosineLeafFactory: field: {}, cosine: {}",
-                        field,
-                        cosine
+                        "FastCosineLeafFactory: field: {}",
+                        field
                 );
 
                 final Object encodedVector = params.get("encoded_vector");
@@ -129,13 +122,10 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                 }
                 inputVector = Util.convertBase64ToArray((String) encodedVector);
 
-                //If cosine calculate the query vec norm
-                if (cosine) {
-                    queryVectorNorm = 0d;
-                    // compute query inputVector norm once
-                    for (double v : inputVector) {
-                        queryVectorNorm += Math.pow(v, 2.0);
-                    }
+                // Compute query inputVector norm once per query per shard
+                queryVectorNorm = 0d;
+                for (double v : inputVector) {
+                    queryVectorNorm += Math.pow(v, 2.0);
                 }
             }
 

@@ -1,5 +1,8 @@
 package com.staysense.fastcosinesimilarity;
 
+import org.jscience.mathematics.vector.Float64Vector;
+import org.jscience.mathematics.vector.Vector;
+
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +12,11 @@ import java.util.Base64;
  * Created by Lior Knaany on 4/7/18.
  */
 public class Util {
+    public static final double cosineSimilarity(double[] a, double[] b) {
+        Vector av = Float64Vector.valueOf(a);
+        Vector bv = Float64Vector.valueOf(b);
+        double score = 0d;
+    }
 
     public static final double[] convertBase64ToArray(String base64Str) {
         final byte[] decode = Base64.getDecoder().decode(base64Str.getBytes(StandardCharsets.UTF_8));
