@@ -1,8 +1,5 @@
 package com.staysense.fastcosinesimilarity;
 
-import org.jscience.mathematics.vector.Float64Vector;
-import org.jscience.mathematics.vector.Vector;
-
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.charset.StandardCharsets;
