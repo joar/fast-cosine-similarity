@@ -22,14 +22,6 @@ import java.util.Map;
 //import org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertHitCount;
 
 public class FastCosineIT extends ESIntegTestCase {
-//    @Override
-//    protected Collection<Class<? extends Plugin>> nodePlugins() {
-//        return Arrays.asList(FastCosineSimilarityPlugin.class);
-//    }
-    private void printTestMessage(String message) {
-        logger.info("[{}#{}]: {} test", getTestClass().getSimpleName(), getTestName(), message);
-    }
-
     public void testMethod() throws IOException {
 
         createIndex("test");
@@ -37,20 +29,6 @@ public class FastCosineIT extends ESIntegTestCase {
         ensureGreen("test");
         logger.info("ensured green");
 
-//        String mapping =
-//                Strings.toString(XContentFactory.jsonBuilder().startObject()
-//                        .startObject("_doc")
-//                            .startObject("properties")
-//                                .startObject("name")
-//                                    .field("type", "text")
-//                                .endObject()
-//                                .startObject("vec")
-//                                    .field("type", "binary")
-//                                    .field("doc_values", true)
-//                                .endObject()
-//                            .endObject()
-//                        .endObject()
-//                .endObject());
         PutMappingResponse putMappingResponse = client().admin().indices()
                 .preparePutMapping("test")
                 .setType("_doc")
@@ -74,8 +52,6 @@ public class FastCosineIT extends ESIntegTestCase {
         byte[] swedishPaymentsVecBytes = getBinaryVec(swedishPaymentsVec);
         byte[] swedishPaymentsVecB64 = Base64.getEncoder().encode(swedishPaymentsVecBytes);
         logger.info("swedishPaymentsVec [Bytes = {}, B64 = {}]", swedishPaymentsVecBytes, swedishPaymentsVecB64);
-//        byte[] expectedBytes = new byte[2 * 8];
-//        assertEquals(expectedBytes, swedishPaymentsVecBytes.array());
         client().prepareIndex("test", "_doc", "swedish-payments")
                 .setSource(
                         XContentFactory.jsonBuilder().startObject()
