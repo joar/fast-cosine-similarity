@@ -17,7 +17,13 @@ apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 
 group = 'com.github.staysense'
-version = '6.4.2'
+
+if (project.hasProperty('projectVersion')) {
+  version = project.projectVersion
+} else {
+  version = '6.4.2'
+}
+
 licenseFile = rootProject.file('LICENSE')
 noticeFile = rootProject.file('README.md')
 
@@ -45,9 +51,9 @@ integTestCluster {
 
 dependencies {
   compile 'org.jscience:jscience:4.3.1'
-  compile "org.elasticsearch:elasticsearch:${versions.elasticsearch}"
+  compile "org.elasticsearch:elasticsearch:${version}"
   testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
-  testCompile "org.elasticsearch.test:framework:${versions.elasticsearch}"
+  testCompile "org.elasticsearch.test:framework:${version}"
 }
 
 // no unit tests
