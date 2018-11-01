@@ -181,7 +181,7 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                                     accessor.docID(),
                                     currentDocID
                             );
-                            return 0.0d;
+                            return 0d;
                         }
 
                         if (!hasValue) {
@@ -190,6 +190,7 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                                     currentDocID,
                                     field
                             );
+                            return 0d;
                         }
 
                         final byte[] bytes;
@@ -205,7 +206,6 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
 
                         // XXX: Some kind of prefix?! Haven't been able to find documentation on this.
                         final int unknownPrefixInt = byteArrayInput.readVInt();
-                        logger.trace("unknownPrefixInt: {}", unknownPrefixInt);
                         // The length of the array seems to be stored in the array. Classic.
                         final int docVectorLength = byteArrayInput.readVInt();
                         final int docVectorStartPosition = byteArrayInput.getPosition();
@@ -231,10 +231,6 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         final double[] docVector = new double[docDoubleBuffer.capacity()];
                         docDoubleBuffer.get(docVector);
 
-                        if (logger.isTraceEnabled()) {
-                            logger.trace("docVector as base64: {}", Util.convertArrayToBase64(docVector));
-                        }
-
                         double docVectorNorm = 0d;
                         double score = 0d;
 
@@ -246,14 +242,10 @@ public final class FastCosineSimilarityPlugin extends Plugin implements ScriptPl
                         }
 
                         if (docVectorNorm == 0 || queryVectorNorm == 0) {
-                            logger.debug("docVectorNorm == 0");
                             return 0d;
                         }
 
                         score = score / (Math.sqrt(docVectorNorm * queryVectorNorm));
-
-                        logger.trace("score: {}", score);
-
                         return score;
                     }
                 };
