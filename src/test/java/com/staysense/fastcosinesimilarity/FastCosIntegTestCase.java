@@ -6,13 +6,16 @@ import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.test.ESIntegTestCase;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,6 +33,11 @@ public abstract class FastCosIntegTestCase extends ESIntegTestCase {
         } else {
             return String.format(Locale.ROOT, "%s#%s", getTestClass().getSimpleName(), getTestName());
         }
+    }
+
+    @Override
+    protected Collection<Class<? extends Plugin>> nodePlugins() {
+        return Arrays.asList(FastCosineSimilarityPlugin.class);
     }
 
     public byte[] getBinaryVec(List<Double> doubles) {

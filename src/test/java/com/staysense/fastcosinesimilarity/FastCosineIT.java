@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class FastCosineIT extends FastCosIntegTestCase {
     private static final String INDEX = "test";
@@ -76,22 +75,13 @@ public class FastCosineIT extends FastCosIntegTestCase {
         expectedHitSource.put("vec", docVectorBytesB64);
         assertEquals(expectedHitSource, searchHit.getSourceAsMap());
 
-        // Unwrap the cosine similarity explanation from the top level explanation, example top level explanation:
+        // Top level Explanation example:
         //
         //  0.8 = min of:
         //      0.8 = cosineSimilarity(...)
         //          1.0 = _score:
         //              1.0 = *:*
         //      3.4028235E38 = maxBoost
-        Explanation outerExplanation = searchHit.getExplanation();
-        // Filter away the nested maxBoost Explanation
-        List<Explanation> nonMaxBoostExplanations = Arrays.stream(outerExplanation.getDetails())
-                .filter(e -> "maxBoost".equals(e.getDescription()))
-                .collect(Collectors.toList());
-        assertEquals(1, nonMaxBoostExplanations.size());
-        // "0.8 cosineSimilarity(...)"
-        Explanation cosineSimilarityExplanation = nonMaxBoostExplanations.get(0);
-
         Explanation expectedExplanation = Explanation.match(
                 (float) expectedScore,
                 "min of:",
@@ -111,15 +101,12 @@ public class FastCosineIT extends FastCosIntegTestCase {
                                         "*:*"
                                 )
                         )
+                ),
+                Explanation.match(
+                        Float.MAX_VALUE,
+                        "maxBoost"
                 )
         );
-//        assertEquals(expectedExplanation, cosineSimilarityExplanation);
-        assertEquals(expectedExplanation, outerExplanation);
-
-    }
-
-    public void testQueryDoubleVec() throws IOException {
-        setupIndex(INDEX);
-
+        assertEquals(expectedExplanation, searchHit.getExplanation());
     }
 }

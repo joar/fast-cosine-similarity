@@ -179,7 +179,7 @@ public class FastCosineLeafFactory implements ScoreScript.LeafFactory {
         public Explanation explain(Explanation subQueryScore) {
             double score = execute();
             Explanation scoreExp = Explanation.match(
-                    subQueryScore.getValue(), "_score: ",
+                    subQueryScore.getValue(), "_score:",
                     subQueryScore);
             String explanation = String.format(Locale.ROOT, "cosineSimilarity(doc['%s'].value, %s)",
                     field,
