@@ -1,76 +1,57 @@
 package com.staysense.fastcosinesimilarity;
 
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.apache.lucene.search.Explanation;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.test.ESIntegTestCase;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-//import org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertHitCount;
+public class FastCosineIT extends FastCosIntegTestCase {
+    private static final String INDEX = "test";
 
-public class FastCosineIT extends ESIntegTestCase {
-    public void testMethod() throws IOException {
+    public void testQueryEncodedVec() throws IOException {
+        setupIndex(INDEX);
 
-        createIndex("test");
-        logger.info("created index");
-        ensureGreen("test");
-        logger.info("ensured green");
+        List<Double> docVector = Arrays.asList(0.1d, 0.2d);
 
-        PutMappingResponse putMappingResponse = client().admin().indices()
-                .preparePutMapping("test")
-                .setType("_doc")
-                .setSource(XContentFactory.jsonBuilder().startObject()
-                        .startObject("properties")
-                            .startObject("name")
-                                .field("type", "text")
-                            .endObject()
-                            .startObject("vec")
-                                .field("type", "binary")
-                                .field("doc_values", true)
-                            .endObject()
-                        .endObject()
-                .endObject())
-                .execute()
-                .actionGet();
-        logger.info("created mapping: {}", putMappingResponse);
-
-        List<Double> swedishPaymentsVec = Arrays.asList(0.1d, 0.2d);
-
-        byte[] swedishPaymentsVecBytes = getBinaryVec(swedishPaymentsVec);
-        byte[] swedishPaymentsVecB64 = Base64.getEncoder().encode(swedishPaymentsVecBytes);
-        logger.info("swedishPaymentsVec [Bytes = {}, B64 = {}]", swedishPaymentsVecBytes, swedishPaymentsVecB64);
-        client().prepareIndex("test", "_doc", "swedish-payments")
-                .setSource(
-                        XContentFactory.jsonBuilder().startObject()
-                                .field("name", "Swedish Payments")
-                                .field("vec", swedishPaymentsVecBytes)
-                                .endObject()
-                )
+        byte[] docVectorBytes = getBinaryVec(docVector);
+        String docVectorBytesB64 = base64StringVector(docVectorBytes);
+        logger.info(
+                "[{}] docVector [Bytes = {}, B64 = {}]",
+                getLogPrefix(),
+                docVectorBytes,
+                docVectorBytesB64
+        );
+        String id = "swedish-payments";
+        String name = randomDocumentName();
+        client().prepareIndex(INDEX, "_doc", id)
+                .setSource(buildDoc(name, docVectorBytes))
                 .execute().actionGet();
 
-        refresh("test");
+        refresh(INDEX);
+
+        List<Double> queryVector = Arrays.asList(0.2d, 0.1d);
+        String queryVectorB64 = base64StringVector(queryVector);
 
         Map<String, Object> params = new HashMap<>();
         params.put("field", "vec");
         params.put(
                 "encoded_vector",
-                new String(swedishPaymentsVecB64, StandardCharsets.UTF_8)
+                queryVectorB64
         );
 
-        SearchResponse searchResponse = client().prepareSearch("test")
+        SearchResponse searchResponse = client().prepareSearch(INDEX)
                 .setQuery(
                         QueryBuilders.functionScoreQuery(
                                 ScoreFunctionBuilders.scriptFunction(new Script(
@@ -80,24 +61,66 @@ public class FastCosineIT extends ESIntegTestCase {
                                         params
                                 ))
                         )
-                ).execute().actionGet();
+                )
+                .setExplain(true)
+                .execute().actionGet();
         assertEquals(1, searchResponse.getHits().totalHits);
 
         SearchHit searchHit = searchResponse.getHits().getAt(0);
 
-        Map<String, Object> expectedHitSource = new HashMap<>();
-        expectedHitSource.put("name", "Swedish Payments");
-        expectedHitSource.put("vec", new String(swedishPaymentsVecB64, StandardCharsets.UTF_8));
+        assertEquals(id, searchHit.getId());
+        double expectedScore = 0.8d;
+        assertEquals(expectedScore, searchHit.getScore(), 0.001d);
 
+        Map<String, Object> expectedHitSource = new HashMap<>();
+        expectedHitSource.put("name", name);
+        expectedHitSource.put("vec", docVectorBytesB64);
         assertEquals(expectedHitSource, searchHit.getSourceAsMap());
+
+        // Unwrap the cosine similarity explanation from the top level explanation, example top level explanation:
+        //
+        //  0.8 = min of:
+        //      0.8 = cosineSimilarity(...)
+        //          1.0 = _score:
+        //              1.0 = *:*
+        //      3.4028235E38 = maxBoost
+        Explanation outerExplanation = searchHit.getExplanation();
+        // Filter away the nested maxBoost Explanation
+        List<Explanation> nonMaxBoostExplanations = Arrays.stream(outerExplanation.getDetails())
+                .filter(e -> "maxBoost".equals(e.getDescription()))
+                .collect(Collectors.toList());
+        assertEquals(1, nonMaxBoostExplanations.size());
+        // "0.8 cosineSimilarity(...)"
+        Explanation cosineSimilarityExplanation = nonMaxBoostExplanations.get(0);
+
+        Explanation expectedExplanation = Explanation.match(
+                (float) expectedScore,
+                "min of:",
+                Explanation.match(
+                        (float) expectedScore,
+                        String.format(
+                                Locale.ROOT,
+                                "cosineSimilarity(doc['%s'].value, %s)",
+                                "vec",
+                                Arrays.toString(queryVector.toArray())
+                        ),
+                        Explanation.match(
+                                1.0f,
+                                "_score:",
+                                Explanation.match(
+                                        1.0f,
+                                        "*:*"
+                                )
+                        )
+                )
+        );
+//        assertEquals(expectedExplanation, cosineSimilarityExplanation);
+        assertEquals(expectedExplanation, outerExplanation);
+
     }
 
-    private byte[] getBinaryVec(List<Double> doubles) {
-        ByteBuffer buf = ByteBuffer.allocate(doubles.size() * Double.BYTES);
-        for (Double item : doubles) {
-            buf.putDouble(item);
-        }
-        buf.rewind();
-        return buf.array();
+    public void testQueryDoubleVec() throws IOException {
+        setupIndex(INDEX);
+
     }
 }

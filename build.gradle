@@ -12,6 +12,10 @@ buildscript {
   }
 }
 
+plugins {
+  id "me.champeau.gradle.jmh" version "0.4.7"
+}
+
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
@@ -28,7 +32,6 @@ licenseFile = rootProject.file('LICENSE')
 noticeFile = rootProject.file('README.md')
 
 ext {
-  versions.elasticsearch = version
   isIdea = System.getProperty("idea.active") != null || gradle.startParameter.taskNames.contains('idea') || gradle.startParameter.taskNames.contains('cleanIdea')
 }
 
@@ -50,9 +53,11 @@ integTestCluster {
 }
 
 dependencies {
-  compile 'org.jscience:jscience:4.3.1'
   compile "org.elasticsearch:elasticsearch:${version}"
+  compile 'org.apache.commons:commons-math3:3.6.1'
+  compile 'org.eclipse.january:org.eclipse.january:2.1.5'
   testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
+  testCompile "org.openjdk.jmh:jmh-core:${versions.jmh}"
   testCompile "org.elasticsearch.test:framework:${version}"
 }
 
@@ -62,6 +67,9 @@ test.enabled = false
 // skip license header checks
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
+
+// january fails forbiddenapis
+thirdPartyAudit.enabled = false
 
 // IntelliJ
 // =============================================================================
