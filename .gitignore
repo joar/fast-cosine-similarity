@@ -8,6 +8,7 @@ build-idea/
  # Gradle files
 .gradle
 /build/
+/.local-*
 
 # Ignore Gradle GUI config
 gradle-app.setting
