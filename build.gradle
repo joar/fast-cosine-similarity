@@ -54,9 +54,6 @@ integTestCluster {
 
 dependencies {
   compile "org.elasticsearch:elasticsearch:${version}"
-  compile 'org.eclipse.january:org.eclipse.january:2.1.5'
-  // testCompile "org.hamcrest:hamcrest-all:${versions.hamcrest}"
-  // testCompile "org.openjdk.jmh:jmh-core:1.21"
   testCompile "org.elasticsearch.test:framework:${version}"
   jmh 'org.eclipse.january:org.eclipse.january:2.1.5'
   jmh ("org.apache.commons:commons-math3:3.6.1") {
