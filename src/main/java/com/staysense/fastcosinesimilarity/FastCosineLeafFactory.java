@@ -112,7 +112,7 @@ public class FastCosineLeafFactory implements ScoreScript.LeafFactory {
         }
 
         /**
-         * See  {@link }org.elasticsearch.common.lucene.search.function.LeafScoreFunction}
+         * See  {@link org.elasticsearch.common.lucene.search.function.LeafScoreFunction}
          * @param targetDocID The ID of the next document to execute() for.
          */
         @Override
