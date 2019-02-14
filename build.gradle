@@ -1,14 +1,14 @@
 buildscript {
   repositories {
     mavenCentral()
-      maven {
-        name 'sonatype-snapshots'
-          url "https://oss.sonatype.org/content/repositories/snapshots/"
-      }
+    maven {
+      name 'sonatype-snapshots'
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
     jcenter()
   }
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:6.4.2"
+    classpath "org.elasticsearch.gradle:build-tools:7.0.0-alpha2"
   }
 }
 
@@ -25,7 +25,7 @@ group = 'com.github.staysense'
 if (project.hasProperty('projectVersion')) {
   version = project.projectVersion
 } else {
-  version = '6.4.2'
+  version = '7.0.0-alpha2'
 }
 
 licenseFile = rootProject.file('LICENSE')
@@ -52,9 +52,15 @@ integTestCluster {
   // numNodes = 2
 }
 
+repositories {
+  maven {
+    url 'http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/774e9aefbc'
+  }
+}
+
 dependencies {
-  compile "org.elasticsearch:elasticsearch:${version}"
   testCompile "org.elasticsearch.test:framework:${version}"
+  compile "org.elasticsearch:elasticsearch:${version}"
   jmh 'org.eclipse.january:org.eclipse.january:2.1.5'
   jmh ("org.apache.commons:commons-math3:3.6.1") {
     // jmh depends on 3.2, january depends on 3.3.
