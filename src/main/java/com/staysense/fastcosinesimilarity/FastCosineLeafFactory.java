@@ -7,7 +7,7 @@ import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.store.ByteArrayDataInput;
-import org.elasticsearch.script.ExplainableSearchScript;
+import org.elasticsearch.script.ExplainableScoreScript;
 import org.elasticsearch.script.ScoreScript;
 import org.elasticsearch.search.lookup.SearchLookup;
 
@@ -96,7 +96,7 @@ public class FastCosineLeafFactory implements ScoreScript.LeafFactory {
         return new FastCosineScoreScript(params, lookup, context, binaryDocValues);
     }
 
-    public class FastCosineScoreScript extends ScoreScript implements ExplainableSearchScript {
+    public class FastCosineScoreScript extends ScoreScript implements ExplainableScoreScript {
         BinaryDocValues binaryDocValues;
         int currentDocID = -1;
         Boolean hasValue = false;

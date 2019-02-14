@@ -2,7 +2,7 @@ package com.staysense.fastcosinesimilarity;
 
 import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
 import com.carrotsearch.randomizedtesting.generators.RandomStrings;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -121,7 +121,7 @@ public abstract class FastCosIntegTestCase extends ESIntegTestCase {
         ensureGreen(index);
         logger.info("[{}] ensured green", getLogPrefix());
 
-        PutMappingResponse putMappingResponse = client().admin().indices()
+        AcknowledgedResponse putMappingResponse = client().admin().indices()
                 .preparePutMapping(index)
                 .setType("_doc")
                 .setSource(XContentFactory.jsonBuilder().startObject()

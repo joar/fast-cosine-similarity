@@ -62,7 +62,7 @@ public class FastCosineIT extends FastCosIntegTestCase {
                 )
                 .setExplain(true)
                 .execute().actionGet();
-        assertEquals(1, searchResponse.getHits().totalHits);
+        assertEquals(1, searchResponse.getHits().getTotalHits().value);
 
         SearchHit searchHit = searchResponse.getHits().getAt(0);
 
@@ -82,31 +82,40 @@ public class FastCosineIT extends FastCosIntegTestCase {
         //          1.0 = _score:
         //              1.0 = *:*
         //      3.4028235E38 = maxBoost
-        Explanation expectedExplanation = Explanation.match(
-                (float) expectedScore,
-                "min of:",
-                Explanation.match(
-                        (float) expectedScore,
-                        String.format(
-                                Locale.ROOT,
-                                "cosineSimilarity(doc['%s'].value, %s)",
-                                "vec",
-                                Arrays.toString(queryVector.toArray())
-                        ),
-                        Explanation.match(
-                                1.0f,
-                                "_score:",
-                                Explanation.match(
-                                        1.0f,
-                                        "*:*"
-                                )
-                        )
-                ),
-                Explanation.match(
-                        Float.MAX_VALUE,
-                        "maxBoost"
-                )
-        );
+        Explanation expectedExplanation =
+            Explanation.match(expectedScore,
+                    "function score, product of:",
+                    Explanation.match(
+                            1.0f,
+                            "*:*"
+                    ),
+                    Explanation.match(
+                            (float) expectedScore,
+                            "min of:",
+
+                            Explanation.match(
+                                    (float) expectedScore,
+                                    String.format(
+                                            Locale.ROOT,
+                                            "cosineSimilarity(doc['%s'].value, %s)",
+                                            "vec",
+                                            Arrays.toString(queryVector.toArray())
+                                    ),
+                                    Explanation.match(
+                                            1.0f,
+                                            "_score:",
+                                            Explanation.match(
+                                                    1.0f,
+                                                    "*:*"
+                                            )
+                                    )
+                            ),
+                            Explanation.match(
+                                    Float.MAX_VALUE,
+                                    "maxBoost"
+                            )
+                    )
+            );
         assertEquals(expectedExplanation, searchHit.getExplanation());
     }
 }
