@@ -67,7 +67,7 @@ public class FastCosineIT extends FastCosIntegTestCase {
         SearchHit searchHit = searchResponse.getHits().getAt(0);
 
         assertEquals(id, searchHit.getId());
-        float expectedScore = 0.8f;
+        float expectedScore = 0.9f;
         assertEquals(expectedScore, searchHit.getScore(), 0.001d);
 
         Map<String, Object> expectedHitSource = new HashMap<>();
