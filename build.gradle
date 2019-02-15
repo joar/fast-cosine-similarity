@@ -8,7 +8,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:7.0.0-alpha2"
+    classpath "org.elasticsearch.gradle:build-tools:7.0.0-beta1"
   }
 }
 
@@ -25,7 +25,7 @@ group = 'com.github.staysense'
 if (project.hasProperty('projectVersion')) {
   version = project.projectVersion
 } else {
-  version = '7.0.0-alpha2'
+  version = '7.0.0-beta1'
 }
 
 licenseFile = rootProject.file('LICENSE')
@@ -54,7 +54,7 @@ integTestCluster {
 
 repositories {
   maven {
-    url 'http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/774e9aefbc'
+    url 'http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/83f9835'
   }
 }
 
