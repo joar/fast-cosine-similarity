@@ -14,7 +14,7 @@ This Plugin allows you to score Elasticsearch documents based on embedding-vecto
 
 ## General
 * This plugin was ported from [This elasticsearch 5.x vector scoring plugin](https://github.com/MLnick/elasticsearch-vector-scoring) and [this discussion](https://discuss.elastic.co/t/vector-scoring/85227/6) and  [lior-k](https://github.com/lior-k)'s original contribution for ElasticSearch 5.5+ to achieve lightning fast result times when searching across millions of documents.
-* This port is for ElasticSearch 6.4+ utilizing the ScoreScript class which was officially split from SearchScript and thus incompatible < 6.4.x
+* This port is for ElasticSearch 6.4+ (now 7.0.0-alpha2) utilizing the ScoreScript class which was officially split from SearchScript and thus incompatible < 6.4.x
 
 ## Improvements
 * lior-k's implementation had some confusing variable assignments that did not consistently match with Cosine-Sim's [mathematical definition](https://en.wikipedia.org/wiki/Cosine_similarity#Definition). This has been updated in the code to more accurately reflect the mathematical definition.
@@ -24,15 +24,16 @@ This Plugin allows you to score Elasticsearch documents based on embedding-vecto
 
 
 ## Elasticsearch version
-* Currently designed for Elasticsearch 6.4.x+
+* Currently designed for Elasticsearch 7.0.0-alpha2
 * Plugin is NOT backwards compatible (see note above about ScoreScript class)
-* Will succesfully build for 6.4.0 and 6.4.1 (latest). Simply modify pom.xml with the correct version then follow maven build steps below.
+* Will succesfully build for 7.0.0 (latest). Simply modify pom.xml with the correct version then follow gradle build steps below.
 
 
-## Maven Build Steps
+## Gradle Build Steps
 * Clone the project
-* `mvn package` to compile the plugin as a zip file
-* In Elasticsearch run `elasticsearch-plugin install file:/PATH_TO_ZIP` to install plugin
+* Then either `./gradlew build` to build and run tests or;
+* Run `./gradlew bundlePlugin` to compile the plugin as a zip file
+* In Elasticsearch run `elasticsearch-plugin install file://PATH_TO_ZIP` to install plugin
 
 ## Why embeddings?
 * Ultimately, by defining the field mapping as a binary value, by storing an embedded version of the vector you are able to take advantage of Lucene's direct API to achieve direct byte access without transformation.
