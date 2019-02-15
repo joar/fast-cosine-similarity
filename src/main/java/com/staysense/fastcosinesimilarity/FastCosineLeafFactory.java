@@ -259,7 +259,7 @@ public class FastCosineLeafFactory implements ScoreScript.LeafFactory {
         }
 
         score = score / (Math.sqrt(docVectorNorm * queryVectorNorm));
-        return score;
+        return ( score + 1.0d ) * 0.5d;
     }
 
     @Override
