@@ -67,7 +67,7 @@ public class FastCosineIT extends FastCosIntegTestCase {
         SearchHit searchHit = searchResponse.getHits().getAt(0);
 
         assertEquals(id, searchHit.getId());
-        double expectedScore = 0.8d;
+        float expectedScore = 0.8f;
         assertEquals(expectedScore, searchHit.getScore(), 0.001d);
 
         Map<String, Object> expectedHitSource = new HashMap<>();
@@ -90,11 +90,11 @@ public class FastCosineIT extends FastCosIntegTestCase {
                             "*:*"
                     ),
                     Explanation.match(
-                            (float) expectedScore,
+                            expectedScore,
                             "min of:",
 
                             Explanation.match(
-                                    (float) expectedScore,
+                                    expectedScore,
                                     String.format(
                                             Locale.ROOT,
                                             "cosineSimilarity(doc['%s'].value, %s)",
@@ -116,6 +116,9 @@ public class FastCosineIT extends FastCosIntegTestCase {
                             )
                     )
             );
-        assertEquals(expectedExplanation, searchHit.getExplanation());
+
+        Explanation actualExplanation = searchHit.getExplanation();
+
+        assertEquals(expectedExplanation, actualExplanation);
     }
 }
