@@ -8,12 +8,13 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:7.0.0-beta1"
+    classpath "org.elasticsearch.gradle:build-tools:7.2.0"
   }
 }
 
 plugins {
   id "me.champeau.gradle.jmh" version "0.4.7"
+  id 'net.researchgate.release' version '2.6.0'
 }
 
 apply plugin: 'java'
@@ -25,7 +26,7 @@ group = 'com.github.staysense'
 if (project.hasProperty('projectVersion')) {
   version = project.projectVersion
 } else {
-  version = '7.0.0-beta1'
+  version = '7.2.0'
 }
 
 licenseFile = rootProject.file('LICENSE')
@@ -53,9 +54,9 @@ integTestCluster {
 }
 
 repositories {
-  maven {
-    url 'http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/83f9835'
-  }
+//  maven {
+    //url 'http://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/83f9835'
+//  }
 }
 
 dependencies {
@@ -124,6 +125,31 @@ idea {
   project {
     vcs = 'Git'
   }
+}
+
+release {
+    failOnCommitNeeded = false
+    failOnPublishNeeded = true
+    failOnSnapshotDependencies = false
+    failOnUnversionedFiles = true
+    failOnUpdateNeeded = true
+    revertOnFail = true
+    preCommitText = ''
+    preTagCommitMessage = '[Gradle Release Plugin] - pre tag commit: '
+    tagCommitMessage = '[Gradle Release Plugin] - creating tag: '
+    newVersionCommitMessage = '[Gradle Release Plugin] - new version commit: '
+    tagTemplate = '${version}'
+    versionPropertyFile = 'gradle.properties'
+    versionProperties = []
+    buildTasks = ['bundlePlugin']
+    
+    git {
+        requireBranch = ''
+        pushToRemote = 'origin'
+        pushToBranchPrefix = ''
+        commitVersionFileOnly = false
+        signTag = false
+    }
 }
 
 // Make sure gradle idea was run before running anything in intellij (including import).
