@@ -31,7 +31,8 @@ This Plugin allows you to score Elasticsearch documents based on embedding-vecto
 ## Gradle Build Steps
 * Clone the project
 * Then either `./gradlew build` to build and run tests or;
-* Run `./gradlew bundlePlugin` to compile the plugin as a zip file
+* `./gradlew integTestRunner` for just the integration tests or;
+* Run `./gradlew bundlePlugin` to compile the plugin as a zip file. You'll find the output at `build/distributions/`
 * In Elasticsearch run `elasticsearch-plugin install file://PATH_TO_ZIP` to install plugin
 
 ## Why embeddings?
